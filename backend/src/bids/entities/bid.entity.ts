@@ -8,7 +8,7 @@ export class Bid {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column()
+    @Column('decimal')
     price: number;
 
     @ManyToOne(() => Item, (item) => item.bids)

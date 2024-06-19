@@ -12,23 +12,27 @@ export class ItemsService {
     private readonly itemsRepository: Repository<Item>,
   ) {}
 
-  create(createBidDto: CreateItemDto) {
-    return this.itemsRepository.create(createBidDto);
+  async create(createBidDto: CreateItemDto) {
+    const newItem = new Item();
+    newItem.title = createBidDto.title;
+    return await this.itemsRepository.insert(newItem);
   }
 
-  findAll() {
-    return this.itemsRepository.find();
+  async findAll() {
+    return await this.itemsRepository.find({ relations: ['bids'] });
   }
 
-  findOne(id: number) {
-    return this.itemsRepository.findOne({ where: { id: id } });
+  async findOne(id: number) {
+    return await this.itemsRepository.findOne({ where: { id: id }, relations: ['bids'] });
   }
 
-  update(id: number, updateBidDto: UpdateItemDto) {
-    return this.itemsRepository.update(id, updateBidDto);
+  async update(id: number, updateBidDto: UpdateItemDto) {
+    const item = await this.findOne(updateBidDto.id);
+    item.title = updateBidDto.title;
+    return await this.itemsRepository.update({id: updateBidDto.id}, item);
   }
 
   async remove(id: number) {
-    return this.itemsRepository.remove(await this.findOne(id));
+    return await this.itemsRepository.remove(await this.findOne(id));
   }
 }

@@ -1,1 +1,4 @@
-export class CreateBidDto {}
+export class CreateBidDto {
+    price: number;
+    itemId: number;
+}

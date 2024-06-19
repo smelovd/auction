@@ -1,34 +1,27 @@
-import { WebSocketGateway, SubscribeMessage, MessageBody } from '@nestjs/websockets';
+import { WebSocketGateway, SubscribeMessage, MessageBody, WebSocketServer } from '@nestjs/websockets';
 import { BidsService } from './bids.service';
 import { CreateBidDto } from './dto/create-bid.dto';
-import { UpdateBidDto } from './dto/update-bid.dto';
+import { Server, Socket } from 'socket.io';
 
 @WebSocketGateway()
 export class BidsGateway {
-  constructor(private readonly bidsService: BidsService) {}
+  constructor(private readonly bidsService: BidsService,
+    // @WebSocketServer()
+    // private readonly server: Server;
+  ) {}
 
   @SubscribeMessage('createBid')
-  create(@MessageBody() createBidDto: CreateBidDto) {
+  async create(@MessageBody() createBidDto: CreateBidDto) {
     return this.bidsService.create(createBidDto);
   }
 
-  @SubscribeMessage('findAllBid')
-  findAll() {
+  @SubscribeMessage('findAllBids')
+  async findAll() {
     return this.bidsService.findAll();
   }
 
-  @SubscribeMessage('findOneBid')
-  findOne(@MessageBody() id: number) {
-    return this.bidsService.findOne(id);
-  }
-
-  @SubscribeMessage('updateBid')
-  update(@MessageBody() updateBidDto: UpdateBidDto) {
-    return this.bidsService.update(updateBidDto.id, updateBidDto);
-  }
-
-  @SubscribeMessage('removeBid')
-  remove(@MessageBody() id: number) {
-    return this.bidsService.remove(id);
+  @SubscribeMessage('findAllBidsByItemId')
+  async findOne(@MessageBody() id: number) {
+    return this.bidsService.findAllByItemId(id);
   }
 }
