@@ -11,6 +11,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Item } from 'src/items/entities/item.entity';
 import { BidsGateway } from './bids.gateway';
 import { ItemsService } from '../items/items.service';
+import { User } from 'src/users/entities/user.entity';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class BidsService {
@@ -19,15 +21,17 @@ export class BidsService {
     @InjectRepository(Bid)
     private readonly bidsRepository: Repository<Bid>,
     private readonly itemsService: ItemsService,
+    private readonly usersService: UsersService,
     private readonly bidsGateway: BidsGateway,
   ) {}
 
-  async create(createBidDto: CreateBidDto) {
+  async create(createBidDto: CreateBidDto, userId: any) {
     const item: Item = await this.itemsService.findOne(createBidDto.itemId);
+    const user: User = await this.usersService.findOne(userId);
     
-    if (this.isPriceInvalid(item, createBidDto.price)) {
+    if (this.isPriceInvalid(item, createBidDto.price) || this.isTimeout(item.deadline)) {
       this.logger.warn('Bid creation failed: Price is not enought!');
-      throw new BadRequestException('Price is not enought!');
+      throw new BadRequestException('Bid creation failed!');
     }
 
     const newBid: Bid = {
@@ -35,7 +39,7 @@ export class BidsService {
       price: createBidDto.price,
       date: new Date(),
       item: item,
-      user: null,
+      user: user,
     };
 
     try {
@@ -47,6 +51,10 @@ export class BidsService {
       this.logger.warn('Bid creation failed');
       throw new BadRequestException('Price is not enought!');
     }
+  }
+
+  private isTimeout(deadline: Date): boolean {
+    return deadline.getTime() <= new Date().getTime();
   }
 
   private isPriceInvalid(item: Item, price: number): boolean {
