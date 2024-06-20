@@ -8,6 +8,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Item } from './entities/item.entity';
 import { Repository } from 'typeorm';
 import { CreateItemDto } from './dto/create-item.dto';
+import { User } from 'src/users/entities/user.entity';
+import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class ItemsService {
@@ -15,9 +17,12 @@ export class ItemsService {
   constructor(
     @InjectRepository(Item)
     private readonly itemsRepository: Repository<Item>,
+    private readonly usersService: UsersService,
   ) {}
 
-  async create(createBidDto: CreateItemDto): Promise<number> {
+  async create(createBidDto: CreateItemDto, userId: any): Promise<number> {
+    const user: User = await this.usersService.findOne(userId);
+
     const newItem: Item = {
       id: null,
       title: createBidDto.title,
@@ -25,7 +30,7 @@ export class ItemsService {
       isSold: false,
       deadline: this.getMonthLater(),
       bids: [],
-      user: null, //TODO
+      user: user,
     };
 
     try {
